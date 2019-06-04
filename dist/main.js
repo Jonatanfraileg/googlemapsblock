@@ -72,26 +72,10 @@ __webpack_require__(1);
 var SDK = __webpack_require__(19);
 var sdk = new SDK(null, null, true); // 3rd argument true bypassing https requirement: not prod worthy
 
-var address, width, height, zoom, link, mapsKey;
-
-function debounce (func, wait, immediate) {
-	var timeout;
-	return function() {
-		var context = this, args = arguments;
-		var later = function() {
-			timeout = null;
-			if (!immediate) func.apply(context, args);
-		};
-		var callNow = immediate && !timeout;
-		clearTimeout(timeout);
-		timeout = setTimeout(later, wait);
-		if (callNow) func.apply(context, args);
-	};
-}
+var address, width, height, zoom, link, eventKey;
 
 function paintSettings () {
-	document.getElementById('text-input-id-0').value = mapsKey;
-	document.getElementById('text-input-id-1').value = address;
+	document.getElementById('text-input-id-0').value = eventKey;
 	document.getElementById('slider-id-01').value = width;
 	document.getElementById('slider-id-02').value = height;
 	document.getElementById('slider-id-03').value = zoom;
@@ -104,8 +88,7 @@ function paintSliderValues () {
 }
 
 function paintMap() {
-	mapsKey = document.getElementById('text-input-id-0').value;
-	address = document.getElementById('text-input-id-1').value;
+	eventKey = document.getElementById('text-input-id-0').value;
 	width = document.getElementById('slider-id-01').value;
 	height = document.getElementById('slider-id-02').value;
 	zoom = document.getElementById('slider-id-03').value;
@@ -113,10 +96,38 @@ function paintMap() {
 	if (!address) {
 		return;
 	}
-	var url = 'https://maps.googleapis.com/maps/api/staticmap?center=' +
-		address.split(' ').join('+') + '&size=' + width + 'x' + height + '&zoom=' + zoom +
-		'&markers=' + address.split(' ').join('+') + '&key=' + mapsKey;
-	sdk.setContent('<a href="' + link + '"><img src="' + url + '" /></a>');
+	var url = ;
+	sdk.setContent('%%[
+   /* declare variables */
+var @Today, @CustomerType, @lookup, @countLineItems, @counter, @row1, @CourseName, @ExpirationDate, @CourseID, @LookupImage, @row2, @ImageLinkURL, @@countLineItems2, @counter2
+
+
+   /*Fix a rule to retrieve courses from Today*/
+set @Today = Format(Now(),"MM/dd/yyyy")
+
+ /*Lookup by Customer Type within Course DE*/
+set @CustomerType = AttributeValue("Customer Type")
+set @lookup = LookupRows('AMPscript_Fundamentals_Courses','CustomerType', @CustomerType, 'Expiration Date', @Today)
+set @countLineItems = RowCount(@lookup)
+    
+    /* We need to count the number of lines in the rowset */
+if @countLineItems > 0 then
+for @counter = 1 to @countLineItems do
+set @row1 = Row(@lookup, @counter)
+
+/* and then, define the fields we want to retrieve */
+set @CourseName = Field(@row1, 'Course Name')
+set @ExpirationDate= Field(@row1, 'Expiration Date')
+set @CourseID = Field(@row1, 'Course ID')
+
+   /* We need to do the same to retrieve course images */
+Set @LookupImage = LookupRows('AMPscript_Fundamentals_Images','Course ID', @CourseID)
+set @countLineItems2 = RowCount(@LookupImage)
+if @countLineItems2 > 0 then
+for @counter2 = 1 to @countLineItems2 do
+Set @row2 = Row(@LookupImage, @counter2)
+Set @ImageLinkURL = Field(@row2, 'Link URL')
+]%%');
 	sdk.setData({
 		address: address,
 		width: width,
